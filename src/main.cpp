@@ -21,7 +21,10 @@ main()
         }
 
         // Here hash table is filled/freed. Measuring.
-        // ...
+        hash_table_t ht {};
+        hash_ctor(&ht, &hash_len);
+
+        hash_dtor(&ht);
 
         free(arr);
 

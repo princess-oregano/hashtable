@@ -1,32 +1,34 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include "hash_table.h"
 
 // -------------------------------HASH FUNCTIONS-------------------------------
 
 // Always returns 1.
-static int
+int
 hash_one(char *key)
 {
         return 1;
 }
 
 // Returns ASCII-code of the first character of key.
-static int
+int
 hash_first_ascii(char *key)
 {
         return key[0];
 }
 
 // Returns length of key.
-static int
+int
 hash_len(char *key)
 {
         return strlen(key);
 }
 
 // Returns sum of key's characters' ASCII-codes.
-static int
+int
 hash_sum_ascii(char *key)
 {
         int ret_val = 0;
@@ -38,7 +40,7 @@ hash_sum_ascii(char *key)
 }
 
 // H_0 = 0; H_(i+1) = rol(H_i)^s[i]
-static int
+int
 hash_rol(char *key)
 {
         int ret_val = 0;
@@ -51,7 +53,7 @@ hash_rol(char *key)
 }
 
 // H_0 = 0; H_(i+1) = ror(H_i)^s[i]
-static int
+int
 hash_ror(char *key)
 {
         int ret_val = 0;
@@ -130,7 +132,7 @@ static const unsigned int crc32_table[] = {
         0xbcb4666d, 0xb8757bda, 0xb5365d03, 0xb1f740b4
 };
 
-static int
+int
 hash_crc32(char *key)
 {
         char *buf = key;
@@ -146,5 +148,55 @@ hash_crc32(char *key)
 
 // ---------------------------END HASH FUNCTIONS-------------------------------
 
+int
+hash_ctor(hash_table_t *ht, int (*hash)(char *key))
+{
+        list_t *table_ptr = (list_t *) calloc(TABLE_SIZE, sizeof(list_t));
 
+        if (table_ptr == nullptr) {
+                fprintf(stderr, "Couldn't allocate memory for list.elem.\n");
+                return HSH_ALLOC;
+        }
 
+        for (int i = 0; i < TABLE_SIZE; i++) {
+                list_ctor(&table_ptr[i], 10);
+        }
+
+        ht->table = table_ptr;
+
+        ht->hash = hash;
+
+        return HSH_NO_ERR;
+}
+
+void
+hash_fill(hash_table_t *ht, char **arr, int size)
+{
+        assert(ht);
+        assert(arr);
+
+        for (int i = 0; i < size; i++) {
+                hash_insert(ht, arr[i], arr[i]);
+        } 
+}
+
+void
+hash_insert(hash_table_t *ht, char *key, char *data)
+{
+        assert(ht);
+        assert(key);
+        assert(data);
+
+        list_insert_back(&ht->table[ht->hash(key) % TABLE_SIZE], data);
+}
+
+void
+hash_dtor(hash_table_t *ht)
+{
+        for (int i = 0; i < TABLE_SIZE; i++) {
+                list_dtor(&ht->table[i]);
+        }
+
+        free(ht->table);
+        ht->hash = nullptr;
+}
