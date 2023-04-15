@@ -8,7 +8,7 @@ typedef char *data_t;
 const int ELEM_POISON = 0xBE;
 
 struct elem_t {
-        data_t data = 0;
+        data_t data = nullptr;
         int next = 0;
         int prev = 0;
 };

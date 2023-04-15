@@ -1,65 +1,67 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 #include <assert.h>
 #include "hash_table.h"
+#include "file.h"
 
 // -------------------------------HASH FUNCTIONS-------------------------------
 
 // Always returns 1.
-int
-hash_one(char *key)
+unsigned int
+hash_one(__attribute__ ((unused)) char *key)
 {
         return 1;
 }
 
 // Returns ASCII-code of the first character of key.
-int
+unsigned int
 hash_first_ascii(char *key)
 {
-        return key[0];
+        return (unsigned int) key[0];
 }
 
 // Returns length of key.
-int
+unsigned int
 hash_len(char *key)
 {
-        return strlen(key);
+        return (unsigned int) strlen(key);
 }
 
 // Returns sum of key's characters' ASCII-codes.
-int
+unsigned int
 hash_sum_ascii(char *key)
 {
-        int ret_val = 0;
+        unsigned int ret_val = 0;
         for (int i = 0; key[i] != 0; i++) {
-                ret_val += key[i];
+                ret_val += (unsigned int) key[i];
         }
 
         return ret_val;
 }
 
 // H_0 = 0; H_(i+1) = rol(H_i)^s[i]
-int
+unsigned int
 hash_rol(char *key)
 {
-        int ret_val = 0;
+        unsigned int ret_val = 0;
         
         for (int i = 0; key[i] != 0; i++) {
-                ret_val = ((ret_val << 1) | (ret_val >> 31)) ^ key[i];
+                ret_val = ((ret_val << 1) | (ret_val >> 31)) ^ (unsigned int) key[i];
         }
 
         return ret_val; 
 }
 
 // H_0 = 0; H_(i+1) = ror(H_i)^s[i]
-int
+unsigned int
 hash_ror(char *key)
 {
-        int ret_val = 0;
+        unsigned int ret_val = 0;
         
         for (int i = 0; key[i] != 0; i++) {
-                ret_val = ((ret_val >> 1) | (ret_val << 31)) ^ key[i];
+                ret_val = ((ret_val >> 1) | (ret_val << 31)) ^ (unsigned int) key[i];
         }
 
         return ret_val; 
@@ -132,10 +134,10 @@ static const unsigned int crc32_table[] = {
         0xbcb4666d, 0xb8757bda, 0xb5365d03, 0xb1f740b4
 };
 
-int
+unsigned int
 hash_crc32(char *key)
 {
-        char *buf = key;
+        uint8_t *buf = (uint8_t *) key;
         unsigned int crc = 0xffffffff;
 
         while (*buf) {
@@ -149,7 +151,7 @@ hash_crc32(char *key)
 // ---------------------------END HASH FUNCTIONS-------------------------------
 
 int
-hash_ctor(hash_table_t *ht, int (*hash)(char *key))
+hash_ctor(hash_table_t *ht, unsigned int (*hash)(char *key))
 {
         list_t *table_ptr = (list_t *) calloc(TABLE_SIZE, sizeof(list_t));
 
@@ -170,7 +172,7 @@ hash_ctor(hash_table_t *ht, int (*hash)(char *key))
 }
 
 void
-hash_fill(hash_table_t *ht, char **arr, int size)
+hash_fill(hash_table_t *ht, char *arr[], int size)
 {
         assert(ht);
         assert(arr);
@@ -187,7 +189,57 @@ hash_insert(hash_table_t *ht, char *key, char *data)
         assert(key);
         assert(data);
 
-        list_insert_back(&ht->table[ht->hash(key) % TABLE_SIZE], data);
+        list_insert_back(&ht->table[ht->hash(key) % TABLE_SIZE], 
+                        data);
+}
+
+int *
+hash_make_data(hash_table_t *ht)
+{
+        int *data = (int *) calloc(TABLE_SIZE, sizeof(int));
+        if (!data) {
+                return data;
+        }
+
+        for (int i = 0; i < TABLE_SIZE; i++) {
+                data[i] = ht->table[i].elem[0].prev;
+        }
+
+        return data;
+}
+
+int
+hash_test(unsigned int (*hash)(char *key), char *arr[], const char *filename)
+{
+        // File preparing module.
+        file_t data_file {};
+        get_file(filename, &data_file, "w"); 
+        fprintf(data_file.stream, "x,y\n");
+
+        // Hash-table(experiment) module.
+        hash_table_t ht {};
+        if (hash_ctor(&ht, hash) != HSH_NO_ERR) {
+                return HSH_ALLOC;
+        }
+
+        hash_fill(&ht, arr, WORD_NUM);
+
+        // Data collecting module.
+        int *data = hash_make_data(&ht);
+        if (data == nullptr) {
+                fprintf(stderr, "Couldn't allocate memory for data.\n");
+                return HSH_ALLOC;
+        }
+
+        // Data writing module.
+        for (int i = 0; i < TABLE_SIZE; i++) {
+                fprintf(data_file.stream, "%d,%d\n", i + 1, data[i]);
+        }
+
+        free(data);
+        hash_dtor(&ht);
+
+        return HSH_NO_ERR;
 }
 
 void

@@ -7,6 +7,7 @@
 int
 main()
 {
+        // File reading and preparing module.
         file_t text {};
         get_file("words_alpha.txt", &text, "a+");
 
@@ -16,15 +17,14 @@ main()
         char **arr = (char **) calloc(WORD_NUM, sizeof(char *));
         format_file(arr, buffer, &text);
 
-        for (int i = 0; i < WORD_NUM; i++) {
-                fprintf(stderr, "%s\n", arr[i]);
-        }
-
-        // Here hash table is filled/freed. Measuring.
-        hash_table_t ht {};
-        hash_ctor(&ht, &hash_len);
-
-        hash_dtor(&ht);
+        // Test module.
+        hash_test(&hash_one, arr, "test1.csv");
+        hash_test(&hash_first_ascii, arr, "test2.csv");
+        hash_test(&hash_len, arr, "test3.csv");
+        hash_test(&hash_sum_ascii, arr, "test4.csv");
+        hash_test(&hash_rol, arr, "test5.csv");
+        hash_test(&hash_ror, arr, "test6.csv");
+        hash_test(&hash_crc32, arr, "test7.csv");
 
         free(arr);
 
