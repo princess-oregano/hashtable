@@ -53,9 +53,8 @@ format_file(char **new_buffer, char *buffer, file_t *file)
         int count = 0;
         for (int i = 0; i < file->stats.st_size; i++) {
                 if (buffer[i] == '\n') {
-                        new_buf[i] = '\0';
+                        new_buf[count] = '\0';
                         count = (count / 32) * 32 + 32;
-                        fprintf(stderr, "%d\n", count);
                 } else {
                         new_buf[count] = buffer[i];
                         count++;

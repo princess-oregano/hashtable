@@ -173,13 +173,13 @@ hash_ctor(hash_table_t *ht, unsigned int (*hash)(char *key))
 }
 
 void
-hash_fill(hash_table_t *ht, char *arr[], int size)
+hash_fill(hash_table_t *ht, char *buffer, int size)
 {
         assert(ht);
-        assert(arr);
+        assert(buffer);
 
         for (int i = 0; i < size; i++) {
-                hash_insert(ht, arr[i], arr[i]);
+                hash_insert(ht, &buffer[i * 32], &buffer[32 * i]);
         } 
 }
 
@@ -210,7 +210,7 @@ hash_make_data(hash_table_t *ht)
 }
 
 int
-hash_test(unsigned int (*hash)(char *key), char *arr[], const char *filename)
+hash_test(unsigned int (*hash)(char *key), char *buffer, const char *filename)
 {
         // File preparing module.
         file_t data_file {};
@@ -223,7 +223,7 @@ hash_test(unsigned int (*hash)(char *key), char *arr[], const char *filename)
                 return HSH_ALLOC;
         }
 
-        hash_fill(&ht, arr, WORD_NUM);
+        hash_fill(&ht, buffer, WORD_NUM);
 
         // Data collecting module.
         int *data = hash_make_data(&ht);
@@ -258,14 +258,8 @@ hash_search(hash_table_t *ht, char *key)
                 __m256i data_256i = _mm256_load_si256((__m256i *) list->elem[i].data);
 
                 __m256i cmp = _mm256_cmpeq_epi8(data_256i, key_256i);
-                if (!_mm256_movemask_epi8(cmp))
+                if (_mm256_movemask_epi8(cmp) == (int) 0xFFFFFFFF)
                         break;
-
-                /*
-                 *if (strcmp(key, list->elem[i].data) == 0) {
-                 *        break;
-                 *}
-                 */
         }
 
         return list->elem[i].data;

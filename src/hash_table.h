@@ -37,13 +37,13 @@ int
 hash_ctor(hash_table_t *ht, unsigned int (*hash)(char *key));
 // Fill hash-table with array of data 'arr'.
 void
-hash_fill(hash_table_t *ht, char *arr[], int size);
+hash_fill(hash_table_t *ht, char *buffer, int size);
 // Creates an array with number of elements in i-th list.
 int *
 hash_make_data(hash_table_t *ht);
 // Make test of specific hash function using 'arr' as data.
 int
-hash_test(unsigned int (*hash)(char *key), char *arr[], const char *filename);
+hash_test(unsigned int (*hash)(char *key), char *buffer, const char *filename);
 // Insert data.
 void
 hash_insert(hash_table_t *ht, char *key, char *data);

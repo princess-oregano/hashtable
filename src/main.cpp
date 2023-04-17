@@ -16,6 +16,11 @@ main()
         
         char *new_buf = nullptr;
         format_file(&new_buf, buffer, &text);
+        /*
+         *for (int i = 0; i < 100; i++) {
+         *        fprintf(stderr, "%s\n", &new_buf[i * 32]);
+         *}
+         */
 
         // Test module.
         /*
@@ -28,20 +33,18 @@ main()
          *hash_test(&hash_crc32, arr, "test7.csv");
          */
 
-/*
- *        // Search module.
- *        hash_table_t ht {};
- *        if (hash_ctor(&ht, &hash_crc32) != HSH_NO_ERR) {
- *                return HSH_ALLOC;
- *        }
- *
- *        hash_fill(&ht, arr, WORD_NUM);
- *        for (int i = 0; i < WORD_NUM; i++) {
- *                fprintf(stderr, "%s\n", hash_search(&ht, arr[i]));
- *        }
- *
- *        hash_dtor(&ht);
- */
+        // Search module.
+        hash_table_t ht {};
+        if (hash_ctor(&ht, &hash_crc32) != HSH_NO_ERR) {
+                return HSH_ALLOC;
+        }
+
+        hash_fill(&ht, new_buf, WORD_NUM);
+        for (int i = 0; i < WORD_NUM; i++) {
+                hash_search(&ht, &new_buf[i * 32]);
+        }
+
+        hash_dtor(&ht);
         free(new_buf);
 
         return 0;
