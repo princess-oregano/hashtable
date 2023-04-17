@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <assert.h>
+#include <immintrin.h>
 #include "hash_table.h"
 #include "file.h"
 
@@ -253,9 +254,18 @@ hash_search(hash_table_t *ht, char *key)
 
         int i = 1;
         for ( ; i < size; i++) {
-                if (strcmp(key, list->elem[i].data) == 0) {
+                __m256i key_256i = _mm256_load_si256((__m256i *) key);
+                __m256i data_256i = _mm256_load_si256((__m256i *) list->elem[i].data);
+
+                __m256i cmp = _mm256_cmpeq_epi8(data_256i, key_256i);
+                if (!_mm256_movemask_epi8(cmp))
                         break;
-                }
+
+                /*
+                 *if (strcmp(key, list->elem[i].data) == 0) {
+                 *        break;
+                 *}
+                 */
         }
 
         return list->elem[i].data;

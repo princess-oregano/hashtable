@@ -1,7 +1,9 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/mman.h>
 #include <assert.h>
 #include "file.h"
+#include "hash_table.h"
 
 int
 get_file(const char *filename, file_t *file, const char *mode)
@@ -40,17 +42,25 @@ read_file(char **buffer, file_t *file)
 }
 
 void
-format_file(char **arr, char *buffer, file_t *file)
+format_file(char **new_buffer, char *buffer, file_t *file)
 {
-        assert(arr);
+        assert(new_buffer);
         assert(file);
         assert(buffer);
+
+        char *new_buf = (char *) calloc(WORD_NUM * 32, sizeof(char));
 
         int count = 0;
         for (int i = 0; i < file->stats.st_size; i++) {
                 if (buffer[i] == '\n') {
-                        buffer[i] = '\0';
-                        arr[count++] = &buffer[i+1];
+                        new_buf[i] = '\0';
+                        count = (count / 32) * 32 + 32;
+                        fprintf(stderr, "%d\n", count);
+                } else {
+                        new_buf[count] = buffer[i];
+                        count++;
                 }
         }
+        
+        *new_buffer = new_buf;
 }
