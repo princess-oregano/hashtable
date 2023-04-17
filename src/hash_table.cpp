@@ -188,7 +188,7 @@ hash_insert(hash_table_t *ht, char *key, char *data)
         assert(ht);
         assert(key);
         assert(data);
-
+        
         list_insert_back(&ht->table[ht->hash(key) % TABLE_SIZE], 
                         data);
 }
@@ -240,6 +240,25 @@ hash_test(unsigned int (*hash)(char *key), char *arr[], const char *filename)
         hash_dtor(&ht);
 
         return HSH_NO_ERR;
+}
+
+char *
+hash_search(hash_table_t *ht, char *key)
+{
+        assert(ht);
+        assert(key);
+
+        list_t *list = &ht->table[ht->hash(key) % TABLE_SIZE];
+        int size = list->tail;
+
+        int i = 1;
+        for ( ; i < size; i++) {
+                if (strcmp(key, list->elem[i].data) == 0) {
+                        break;
+                }
+        }
+
+        return list->elem[i].data;
 }
 
 void
