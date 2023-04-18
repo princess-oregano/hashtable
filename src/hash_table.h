@@ -13,28 +13,28 @@ const int TABLE_SIZE = 25000;
 const int WORD_NUM   = 370105;
 
 struct hash_table_t {
-        unsigned int (*hash)(char *) = nullptr;
+        unsigned int (*hash)(const char *) = nullptr;
         list_t *table = nullptr;
 };
 
 // Different hash functions.
 unsigned int
-hash_one(char *key);
+hash_one(const char *key);
 unsigned int
-hash_first_ascii(char *key);
+hash_first_ascii(const char *key);
 unsigned int
-hash_len(char *key);
+hash_len(const char *key);
 unsigned int
-hash_sum_ascii(char *key);
+hash_sum_ascii(const char *key);
 unsigned int
-hash_rol(char *key);
+hash_rol(const char *key);
 unsigned int
-hash_ror(char *key);
+hash_ror(const char *key);
 unsigned int
-hash_crc32(char *key);
+hash_crc32(const char *key);
 // Construct hash-table.
 int
-hash_ctor(hash_table_t *ht, unsigned int (*hash)(char *key));
+hash_ctor(hash_table_t *ht, unsigned int (*hash)(const char *key));
 // Fill hash-table with array of data 'arr'.
 void
 hash_fill(hash_table_t *ht, char *buffer, int size);
@@ -43,13 +43,13 @@ int *
 hash_make_data(hash_table_t *ht);
 // Make test of specific hash function using 'arr' as data.
 int
-hash_test(unsigned int (*hash)(char *key), char *buffer, const char *filename);
+hash_test(unsigned int (*hash)(const char *key), char *buffer, const char *filename);
 // Insert data.
 void
 hash_insert(hash_table_t *ht, char *key, char *data);
 // Find data.
 char *
-hash_search(hash_table_t *ht, char *key);
+hash_search(hash_table_t *ht, const char *key);
 // Destruct hash-table.
 void
 hash_dtor(hash_table_t *ht);

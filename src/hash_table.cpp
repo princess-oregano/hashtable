@@ -11,28 +11,28 @@
 
 // Always returns 1.
 unsigned int
-hash_one(__attribute__ ((unused)) char *key)
+hash_one(__attribute__ ((unused)) const char *key)
 {
         return 1;
 }
 
 // Returns ASCII-code of the first character of key.
 unsigned int
-hash_first_ascii(char *key)
+hash_first_ascii(const char *key)
 {
         return (unsigned int) key[0];
 }
 
 // Returns length of key.
 unsigned int
-hash_len(char *key)
+hash_len(const char *key)
 {
         return (unsigned int) strlen(key);
 }
 
 // Returns sum of key's characters' ASCII-codes.
 unsigned int
-hash_sum_ascii(char *key)
+hash_sum_ascii(const char *key)
 {
         unsigned int ret_val = 0;
         for (int i = 0; key[i] != 0; i++) {
@@ -44,7 +44,7 @@ hash_sum_ascii(char *key)
 
 // H_0 = 0; H_(i+1) = rol(H_i)^s[i]
 unsigned int
-hash_rol(char *key)
+hash_rol(const char *key)
 {
         unsigned int ret_val = 0;
         
@@ -57,7 +57,7 @@ hash_rol(char *key)
 
 // H_0 = 0; H_(i+1) = ror(H_i)^s[i]
 unsigned int
-hash_ror(char *key)
+hash_ror(const char *key)
 {
         unsigned int ret_val = 0;
         
@@ -136,9 +136,9 @@ static const unsigned int crc32_table[] = {
 };
 
 unsigned int
-hash_crc32(char *key)
+hash_crc32(const char *key)
 {
-        uint8_t *buf = (uint8_t *) key;
+        const uint8_t *buf = (const uint8_t *) key;
         unsigned int crc = 0xffffffff;
 
         while (*buf) {
@@ -152,7 +152,7 @@ hash_crc32(char *key)
 // ---------------------------END HASH FUNCTIONS-------------------------------
 
 int
-hash_ctor(hash_table_t *ht, unsigned int (*hash)(char *key))
+hash_ctor(hash_table_t *ht, unsigned int (*hash)(const char *key))
 {
         list_t *table_ptr = (list_t *) calloc(TABLE_SIZE, sizeof(list_t));
 
@@ -210,7 +210,7 @@ hash_make_data(hash_table_t *ht)
 }
 
 int
-hash_test(unsigned int (*hash)(char *key), char *buffer, const char *filename)
+hash_test(unsigned int (*hash)(const char *key), char *buffer, const char *filename)
 {
         // File preparing module.
         file_t data_file {};
@@ -244,7 +244,7 @@ hash_test(unsigned int (*hash)(char *key), char *buffer, const char *filename)
 }
 
 char *
-hash_search(hash_table_t *ht, char *key)
+hash_search(hash_table_t *ht, const char *key)
 {
         assert(ht);
         assert(key);
@@ -254,12 +254,22 @@ hash_search(hash_table_t *ht, char *key)
 
         int i = 1;
         for ( ; i < size; i++) {
-                __m256i key_256i = _mm256_load_si256((__m256i *) key);
-                __m256i data_256i = _mm256_load_si256((__m256i *) list->elem[i].data);
+                // AVX/AVX2 optimization of strcmp().
+                const __m256i key_256i = _mm256_load_si256((const __m256i *) key);
+                const __m256i data_256i = _mm256_load_si256((const __m256i *) list->elem[i].data);
 
-                __m256i cmp = _mm256_cmpeq_epi8(data_256i, key_256i);
+                __m256i cmp = _mm256_cmpeq_epi64(data_256i, key_256i);
                 if (_mm256_movemask_epi8(cmp) == (int) 0xFFFFFFFF)
                         break;
+
+                /*
+                 *for ( ; i < size; i++) {
+                 *        if (strcmp(key, list->elem[i].data) == 0) {
+                 *                break;
+                 *        }
+                 *}
+                 */
+
         }
 
         return list->elem[i].data;
