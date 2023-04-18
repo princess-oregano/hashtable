@@ -4,7 +4,7 @@
 #include <assert.h>
 #include "list.h"
 
-void
+int
 list_resize(list_t *list, int new_cap)
 {
         elem_t *elem_ptr = (elem_t *) realloc(list->elem,
@@ -12,7 +12,7 @@ list_resize(list_t *list, int new_cap)
 
         if (elem_ptr == nullptr) {
                 fprintf(stderr, "Couldn't allocate memory for list.elem.\n");
-                return;
+                return LST_ALLOC;
         }
 
         for (int i = list->cap; i < new_cap + 1; i++) {
@@ -28,20 +28,26 @@ list_resize(list_t *list, int new_cap)
         list->elem[list->cap].next = list->cap + 1;
 
         list->cap = new_cap;
+
+        return LST_NO_ERR;
 }
 
-void
+int
 list_ctor(list_t *list, int cap)
 {
-        list_resize(list, cap);
+        int err = 0;
+        if ((err = list_resize(list, cap)) != LST_NO_ERR)
+                return err;
 
         list->elem[0].prev = 0;
         list->elem[0].next = 0;
 
         list->free = 1;
+
+        return LST_NO_ERR;
 }
 
-void
+int
 list_insert(list_t *list, data_t data, int pos)
 {
         assert(list);
@@ -55,11 +61,13 @@ list_insert(list_t *list, data_t data, int pos)
         if (pos < 0 || pos > list->tail + 1) {
                 fprintf(stderr, "Invalid position.\n");
                 fprintf(stderr, "pos = %d; tail  = %d\n", pos, list->tail);
-                return;
+                return LST_INSERT;
         }
 
         if (pos >= list->cap - 1) {
-                list_resize(list, 2 * list->cap);
+                int err = 0;
+                if ((err = list_resize(list, 2 * list->cap)) != LST_NO_ERR)
+                        return err;
         }
 
         int index = list->free;
@@ -72,18 +80,30 @@ list_insert(list_t *list, data_t data, int pos)
 
         list->elem[pos].next = index;
         list->elem[list->elem[index].next].prev = index;
+
+        return LST_NO_ERR;
 }
 
-void
+int
 list_insert_front(list_t *list, data_t data)
 {
-        list_insert(list, data, 0);
+        int err = 0;
+        if ((err = list_insert(list, data, 0)) != LST_NO_ERR) {
+                return err;
+        }
+
+        return LST_NO_ERR;
 }
 
-void
+int
 list_insert_back(list_t *list, data_t data)
 {
-        list_insert(list, data, list->elem[0].prev);
+        int err = 0;
+        if ((err = list_insert(list, data, list->elem[0].prev)) != LST_NO_ERR) {
+                return err;
+        }
+
+        return LST_NO_ERR;
 }
 
 int
@@ -109,16 +129,22 @@ list_find(const list_t *list, int pos)
         return index;
 }
 
-void
+int
 list_sort(list_t *list)
 {
         assert(list);
 
         if (list->ordered)
-                return;
+                return LST_NO_ERR;
 
         data_t *sorted_data = (data_t *) calloc((size_t) list->cap + 1,
                                                  sizeof(data_t));
+
+        if (sorted_data == nullptr) {
+                fprintf(stderr, "Error: Could not allocate memory for"
+                                " sorted data.\n");
+                return LST_ALLOC;
+        }
 
         for (int i = 1; i <= list->tail; i++) {
                 sorted_data[i] = list->elem[list_find(list, i)].data;
@@ -148,6 +174,8 @@ list_sort(list_t *list)
         list->elem[list->free - 1].next = 0;
 
         free(sorted_data);
+
+        return LST_NO_ERR;
 }
 
 void
