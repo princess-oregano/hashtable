@@ -162,7 +162,11 @@ hash_ctor(hash_table_t *ht, unsigned int (*hash)(const char *key))
         }
 
         for (int i = 0; i < TABLE_SIZE; i++) {
-                list_ctor(&table_ptr[i], 10);
+                if (list_ctor(&table_ptr[i], 10)) {
+                        fprintf(stderr, "Couldn't construct lists.\n");
+                        return HSH_LIST;
+                }
+
         }
 
         ht->table = table_ptr;
@@ -172,26 +176,34 @@ hash_ctor(hash_table_t *ht, unsigned int (*hash)(const char *key))
         return HSH_NO_ERR;
 }
 
-void
+int
 hash_fill(hash_table_t *ht, char *buffer, int size)
 {
         assert(ht);
         assert(buffer);
 
         for (int i = 0; i < size; i++) {
-                hash_insert(ht, &buffer[i * 32], &buffer[32 * i]);
+                if (hash_insert(ht, &buffer[i * 32], &buffer[32 * i]) != HSH_NO_ERR) {
+                        return HSH_LIST;
+                }
         } 
+
+        return HSH_NO_ERR;
 }
 
-void
+int
 hash_insert(hash_table_t *ht, char *key, char *data)
 {
         assert(ht);
         assert(key);
         assert(data);
         
-        list_insert_back(&ht->table[ht->hash(key) % TABLE_SIZE], 
-                        data);
+        if (list_insert_back(&ht->table[ht->hash(key) % TABLE_SIZE], 
+                              data) != LST_NO_ERR) {
+                return HSH_LIST;
+        }
+
+        return HSH_NO_ERR;
 }
 
 int *
@@ -223,7 +235,9 @@ hash_test(unsigned int (*hash)(const char *key), char *buffer, const char *filen
                 return HSH_ALLOC;
         }
 
-        hash_fill(&ht, buffer, WORD_NUM);
+        if (hash_fill(&ht, buffer, WORD_NUM) != HSH_NO_ERR) {
+                return HSH_LIST;
+        }
 
         // Data collecting module.
         int *data = hash_make_data(&ht);
