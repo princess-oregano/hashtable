@@ -142,6 +142,7 @@ hash_crc32(const char *key)
         unsigned int crc = 0xffffffff;
 
         while (*buf) {
+                //crc = _mm_crc32_u8(crc, *buf);
                 crc = (crc << 8) ^ crc32_table[((crc >> 24) ^ *buf) & 255];
                 buf++;
         }
@@ -257,13 +258,19 @@ hash_test(unsigned int (*hash)(const char *key), char *buffer, const char *filen
         return HSH_NO_ERR;
 }
 
+extern "C" void format(char *format_key, const char *key);
+
 char *
 hash_search(hash_table_t *ht, const char *key)
 {
         assert(ht);
         assert(key);
 
-        char format_key[32] = {0};
+        char format_key[32] = {};
+        /*
+         *format(format_key, key);
+         */
+
         for (int i = 0; key[i] != 0; i++) {
                 if (i == 31) {
                         break;
@@ -271,6 +278,7 @@ hash_search(hash_table_t *ht, const char *key)
                 format_key[i] = key[i];
         }
 
+        fprintf(stderr, "%s\n", format_key);
         list_t *list = &ht->table[ht->hash(format_key) % TABLE_SIZE];
         int size = list->tail;
 
@@ -279,8 +287,10 @@ hash_search(hash_table_t *ht, const char *key)
                 // AVX/AVX2 optimization of strcmp().
                 const __m256i key_256i = _mm256_load_si256((const __m256i *) format_key);
                 const __m256i data_256i = _mm256_load_si256((const __m256i *) list->elem[i].data);
+                fprintf(stderr, " %s ", list->elem[i].data);
 
                 __m256i cmp = _mm256_cmpeq_epi64(data_256i, key_256i);
+                fprintf(stderr, "%x", _mm256_movemask_epi8(cmp));
                 if (_mm256_movemask_epi8(cmp) == (int) 0xFFFFFFFF)
                         return list->elem[i].data;
 

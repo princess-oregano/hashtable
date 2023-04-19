@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "hash_table.h"
 #include "file.h"
 #include "list.h"
@@ -41,8 +42,14 @@ main()
 
         hash_fill(&ht, new_buf, WORD_NUM);
         for (int i = 0; i < WORD_NUM; i++) {
-                //fprintf(stderr, "%s %s\n", &new_buf[i * 32], hash_search(&ht, &new_buf[i * 32]));
-                hash_search(&ht, &new_buf[i * 32]);
+                fprintf(stderr, "%s %s\n", &new_buf[i * 32], hash_search(&ht, &new_buf[i * 32]));
+                /*
+                 *if (strcmp(&new_buf[i * 32], hash_search(&ht, &new_buf[i * 32])) != 0)
+                 *        fprintf(stderr, "Error\n");
+                 */
+                /*
+                 *hash_search(&ht, &new_buf[i * 32]);
+                 */
         }
 
         hash_dtor(&ht);

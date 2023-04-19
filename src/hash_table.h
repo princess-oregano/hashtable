@@ -47,7 +47,8 @@ hash_test(unsigned int (*hash)(const char *key), char *buffer, const char *filen
 // Insert data.
 int
 hash_insert(hash_table_t *ht, char *key, char *data);
-// Find data.
+// Find data. Accepts string `key` up to 32 byres including null-terminating byte,
+// otherwise trims last bytes.
 char *
 hash_search(hash_table_t *ht, const char *key);
 // Destruct hash-table.

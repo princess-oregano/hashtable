@@ -2,7 +2,7 @@ SRCDIR := src
 OBJDIR := obj
 
 SRC := main.cpp list.cpp file.cpp hash_table.cpp
-OBJ := $(addprefix $(OBJDIR)/, $(SRC:.cpp=.o))
+OBJ := obj/format.o $(addprefix $(OBJDIR)/, $(SRC:.cpp=.o))
 TARGET := hash_table
 
 CXX := g++
@@ -63,6 +63,10 @@ out: $(OBJDIR) $(OBJ)
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	printf "%s\n" "Compiling $@..."
 	$(CXX) -c $^ -o  $@ $(CXXFLAGS)
+
+$(OBJDIR)/format.o: $(SRCDIR)/format.s
+	printf "%s\n" "Assembling format.o..."
+	nasm -g -f elf64 src/format.s -o obj/format.o
 
 $(OBJDIR):
 	printf "%s\n" "Making $@/ directory..."
