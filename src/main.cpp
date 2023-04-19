@@ -42,14 +42,12 @@ main()
 
         hash_fill(&ht, new_buf, WORD_NUM);
         for (int i = 0; i < WORD_NUM; i++) {
-                fprintf(stderr, "%s %s\n", &new_buf[i * 32], hash_search(&ht, &new_buf[i * 32]));
+                //fprintf(stderr, "%s %s\n", &new_buf[i * 32], hash_search(&ht, &new_buf[i * 32]));
                 /*
                  *if (strcmp(&new_buf[i * 32], hash_search(&ht, &new_buf[i * 32])) != 0)
                  *        fprintf(stderr, "Error\n");
                  */
-                /*
-                 *hash_search(&ht, &new_buf[i * 32]);
-                 */
+                hash_search(&ht, &new_buf[i * 32]);
         }
 
         hash_dtor(&ht);
