@@ -138,16 +138,35 @@ static const unsigned int crc32_table[] = {
 unsigned int
 hash_crc32(const char *key)
 {
-        const uint8_t *buf = (const uint8_t *) key;
-        unsigned int crc = 0xffffffff;
+asm (
+                ".intel_syntax noprefix\n"
+                "push    rbp\n"
+                "mov     rbp, rsp\n"
+                "push rdx\n"
+                "mov eax, 0xffffffff\n"
+        ".loop:\n"
+                "mov dl, byte [rdi]\n"
+                "cmp dl, 0\n"
+                "je .ret\n"
+                "crc32 eax, dl\n"
+                "inc rdi\n"
+                "jmp .loop\n"
+        ".ret:\n"
+                "pop rdx\n"
+                "pop rbp\n"
+                "ret\n"
+                ".att_syntax prefix\n"
+);
 
-        while (*buf) {
+        //const uint8_t *buf = (const uint8_t *) key;
+        //unsigned int crc = 0xffffffff;
+
+        //while (*buf) {
                 //crc = _mm_crc32_u8(crc, *buf);
-                crc = (crc << 8) ^ crc32_table[((crc >> 24) ^ *buf) & 255];
-                buf++;
-        }
+                //buf++;
+        //}
           
-        return crc;
+        //return crc;
 }
 
 // ---------------------------END HASH FUNCTIONS-------------------------------
@@ -198,7 +217,6 @@ hash_insert(hash_table_t *ht, char *key, char *data)
         assert(ht);
         assert(key);
         assert(data);
-        
         if (list_insert_back(&ht->table[ht->hash(key) % TABLE_SIZE], 
                               data) != LST_NO_ERR) {
                 return HSH_LIST;
