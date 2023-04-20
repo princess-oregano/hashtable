@@ -157,6 +157,8 @@ asm (
                 "ret\n"
                 ".att_syntax prefix\n"
 );
+        // UNREACHABLE
+        return 0;
 
         //const uint8_t *buf = (const uint8_t *) key;
         //unsigned int crc = 0xffffffff;
@@ -197,21 +199,6 @@ hash_ctor(hash_table_t *ht, unsigned int (*hash)(const char *key))
 }
 
 int
-hash_fill(hash_table_t *ht, char *buffer, int size)
-{
-        assert(ht);
-        assert(buffer);
-
-        for (int i = 0; i < size; i++) {
-                if (hash_insert(ht, &buffer[i * 32], &buffer[32 * i]) != HSH_NO_ERR) {
-                        return HSH_LIST;
-                }
-        } 
-
-        return HSH_NO_ERR;
-}
-
-int
 hash_insert(hash_table_t *ht, char *key, char *data)
 {
         assert(ht);
@@ -221,57 +208,6 @@ hash_insert(hash_table_t *ht, char *key, char *data)
                               data) != LST_NO_ERR) {
                 return HSH_LIST;
         }
-
-        return HSH_NO_ERR;
-}
-
-int *
-hash_make_data(hash_table_t *ht)
-{
-        int *data = (int *) calloc(TABLE_SIZE, sizeof(int));
-        if (!data) {
-                return data;
-        }
-
-        for (int i = 0; i < TABLE_SIZE; i++) {
-                data[i] = ht->table[i].elem[0].prev;
-        }
-
-        return data;
-}
-
-int
-hash_test(unsigned int (*hash)(const char *key), char *buffer, const char *filename)
-{
-        // File preparing module.
-        file_t data_file {};
-        get_file(filename, &data_file, "w"); 
-        fprintf(data_file.stream, "x,y\n");
-
-        // Hash-table(experiment) module.
-        hash_table_t ht {};
-        if (hash_ctor(&ht, hash) != HSH_NO_ERR) {
-                return HSH_ALLOC;
-        }
-
-        if (hash_fill(&ht, buffer, WORD_NUM) != HSH_NO_ERR) {
-                return HSH_LIST;
-        }
-
-        // Data collecting module.
-        int *data = hash_make_data(&ht);
-        if (data == nullptr) {
-                fprintf(stderr, "Couldn't allocate memory for data.\n");
-                return HSH_ALLOC;
-        }
-
-        // Data writing module.
-        for (int i = 0; i < TABLE_SIZE; i++) {
-                fprintf(data_file.stream, "%d,%d\n", i + 1, data[i]);
-        }
-
-        free(data);
-        hash_dtor(&ht);
 
         return HSH_NO_ERR;
 }
@@ -287,14 +223,12 @@ hash_search(hash_table_t *ht, const char *key)
         char format_key[32] = {};
         format(format_key, key);
 
-        /*
-         *for (int i = 0; key[i] != 0; i++) {
-         *        if (i == 31) {
-         *                break;
-         *        }
-         *        format_key[i] = key[i];
-         *}
-         */
+        //for (int i = 0; key[i] != 0; i++) {
+                //if (i == 31) {
+                        //break;
+                //}
+                //format_key[i] = key[i];
+        //}
 
         list_t *list = &ht->table[ht->hash(format_key) % TABLE_SIZE];
         int size = list->tail;
@@ -310,13 +244,11 @@ hash_search(hash_table_t *ht, const char *key)
                         return list->elem[i].data;
         }
         
-        /*
-         *for ( ; i <= size; i++) {
-         *        if (strcmp(key, list->elem[i].data) == 0) {
-         *                break;
-         *        }
-         *}
-         */
+        //for ( ; i <= size; i++) {
+                //if (strcmp(format_key, list->elem[i].data) == 0) {
+                        //return list->elem[i].data;
+                //}
+        //}
 
         return nullptr;
 }

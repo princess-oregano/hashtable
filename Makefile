@@ -1,7 +1,7 @@
 SRCDIR := src
 OBJDIR := obj
 
-SRC := main.cpp list.cpp file.cpp hash_table.cpp
+SRC := main.cpp list.cpp file.cpp hash_table.cpp test.cpp
 OBJ := obj/format.o $(addprefix $(OBJDIR)/, $(SRC:.cpp=.o))
 TARGET := hash_table
 

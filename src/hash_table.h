@@ -35,15 +35,6 @@ hash_crc32(const char *key);
 // Construct hash-table.
 int
 hash_ctor(hash_table_t *ht, unsigned int (*hash)(const char *key));
-// Fill hash-table with array of data 'arr'.
-int
-hash_fill(hash_table_t *ht, char *buffer, int size);
-// Creates an array with number of elements in i-th list.
-int *
-hash_make_data(hash_table_t *ht);
-// Make test of specific hash function using 'arr' as data.
-int
-hash_test(unsigned int (*hash)(const char *key), char *buffer, const char *filename);
 // Insert data.
 int
 hash_insert(hash_table_t *ht, char *key, char *data);
