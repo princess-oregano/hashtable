@@ -15,17 +15,14 @@ format:
         push rax
         push rcx
 
-        mov rcx, 32
+        mov rcx, 4
 
 .loop:
-        cmp dword [rsi], 0
-        je .ret
+        mov rax, qword [rsi]
+        mov qword [rdi], rax
 
-        mov al, byte [rsi]
-        mov byte [rdi], al
-
-        inc rdi
-        inc rsi
+        add rdi, 4
+        add rsi, 4
 
         loop .loop
 

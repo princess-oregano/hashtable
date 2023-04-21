@@ -61,7 +61,7 @@ test(unsigned int (*hash)(const char *key), char *buffer, const char *filename)
 
         // Data writing module.
         for (int i = 0; i < TABLE_SIZE; i++) {
-                fprintf(data_file.stream, "%d,%d\n", i + 1, data[i]);
+                fprintf(data_file.stream, "%d,%d\n", i, data[i]);
         }
 
         free(data);

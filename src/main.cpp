@@ -18,19 +18,14 @@ main()
         
         char *new_buf = nullptr;
         format_file(&new_buf, buffer, &text);
-        /*
-         *for (int i = 0; i < 100; i++) {
-         *        fprintf(stderr, "%s\n", &new_buf[i * 32]);
-         *}
-         */
 
         // Test module.
-        //test(&hash_one, arr, "test1.csv");
-        //test(&hash_first_ascii, arr, "test2.csv");
-        //test(&hash_len, arr, "test3.csv");
-        //test(&hash_sum_ascii, arr, "test4.csv");
-        //test(&hash_rol, arr, "test5.csv");
-        //test(&hash_ror, arr, "test6.csv");
+        //test(&hash_one, new_buf, "test1.csv");
+        //test(&hash_first_ascii, new_buf, "test2.csv");
+        //test(&hash_len, new_buf, "test3.csv");
+        //test(&hash_sum_ascii, new_buf, "test4.csv");
+        //test(&hash_rol, new_buf, "test5.csv");
+        //test(&hash_ror, new_buf, "test6.csv");
         //test(&hash_crc32, new_buf, "test7.csv");
 
         // Search module.
@@ -40,11 +35,13 @@ main()
         }
 
         test_fill(&ht, new_buf, WORD_NUM);
-        for (int i = 0; i < WORD_NUM; i++) {
-                //fprintf(stderr, "%s %s\n", &new_buf[i * 32], hash_search(&ht, &new_buf[i * 32]));
-                //if (strcmp(&new_buf[i * 32], hash_search(&ht, &new_buf[i * 32])) != 0)
-                        //fprintf(stderr, "Error\n");
-                //hash_search(&ht, &new_buf[i * 32]);
+        for (int j = 0; j < 100; j++) {
+                for (int i = 0; i < WORD_NUM; i++) {
+                        //fprintf(stderr, "%s %s\n", &new_buf[i * 32], hash_search(&ht, &new_buf[i * 32]));
+                        //if (strcmp(&new_buf[i * 32], hash_search(&ht, &new_buf[i * 32])) != 0)
+                                //fprintf(stderr, "Error\n");
+                        hash_search(&ht, &new_buf[i * 32]);
+                }
         }
 
         hash_dtor(&ht);

@@ -140,8 +140,6 @@ hash_crc32(const char *key)
 {
 asm (
                 ".intel_syntax noprefix\n"
-                "push    rbp\n"
-                "mov     rbp, rsp\n"
                 "push rdx\n"
                 "mov eax, 0xffffffff\n"
         ".loop:\n"
@@ -153,22 +151,21 @@ asm (
                 "jmp .loop\n"
         ".ret:\n"
                 "pop rdx\n"
-                "pop rbp\n"
                 "ret\n"
                 ".att_syntax prefix\n"
 );
         // UNREACHABLE
         return 0;
 
-        //const uint8_t *buf = (const uint8_t *) key;
-        //unsigned int crc = 0xffffffff;
+        const uint8_t *buf = (const uint8_t *) key;
+        unsigned int crc = 0xffffffff;
 
-        //while (*buf) {
-                //crc = _mm_crc32_u8(crc, *buf);
-                //buf++;
-        //}
+        while (*buf) {
+                crc = _mm_crc32_u8(crc, *buf);
+                buf++;
+        }
           
-        //return crc;
+        return crc;
 }
 
 // ---------------------------END HASH FUNCTIONS-------------------------------

@@ -6,7 +6,7 @@ OBJ := obj/format.o $(addprefix $(OBJDIR)/, $(SRC:.cpp=.o))
 TARGET := hash_table
 
 CXX := g++
-CXXFLAGS := -O3 -g -std=c++14 -fmax-errors=100 -Wall -Wextra -mavx -mavx2     \
+CXXFLAGS := -O1 -g -std=c++14 -fmax-errors=100 -Wall -Wextra -mavx -mavx2     \
 	    -Weffc++ -Waggressive-loop-optimizations -Wc++0x-compat           \
 	    -Wc++11-compat -Wc++14-compat -Wcast-align -Wcast-qual            \
 	    -Wchar-subscripts -Wconditionally-supported -Wconversion          \
@@ -22,7 +22,7 @@ CXXFLAGS := -O3 -g -std=c++14 -fmax-errors=100 -Wall -Wextra -mavx -mavx2     \
 	    -Wswitch-enum -Wsync-nand -Wundef -Wunreachable-code -Wunused     \
 	    -Wuseless-cast -Wvariadic-macros -Wno-literal-suffix              \
 	    -Wno-missing-field-initializers -Wno-narrowing                    \
-	    -Wno-old-style-cast -Wno-varargs -fcheck-new                      \
+	    -Wno-old-style-cast -Wno-varargs #-fcheck-new                      \
 	    #-fsized-deallocation -fstack-check -fstack-protector              \
 	    #-fstrict-overflow -flto-odr-type-merging                          \
 	    #-fno-omit-frame-pointer                                           \
