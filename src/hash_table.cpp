@@ -144,28 +144,27 @@ asm (
                 "mov eax, 0xffffffff\n"
         ".loop:\n"
                 "mov dl, byte [rdi]\n"
-                "cmp dl, 0\n"
-                "je .ret\n"
                 "crc32 eax, dl\n"
                 "inc rdi\n"
-                "jmp .loop\n"
+                "cmp dl, 0\n"
+                "jne .loop\n"
         ".ret:\n"
                 "pop rdx\n"
                 "ret\n"
                 ".att_syntax prefix\n"
 );
-        // UNREACHABLE
+        //UNREACHABLE
         return 0;
 
-        const uint8_t *buf = (const uint8_t *) key;
-        unsigned int crc = 0xffffffff;
+        //const uint8_t *buf = (const uint8_t *) key;
+        //unsigned int crc = 0xffffffff;
 
-        while (*buf) {
-                crc = _mm_crc32_u8(crc, *buf);
-                buf++;
-        }
+        //while (*buf) {
+                //crc = (crc << 8) ^ crc32_table[((crc >> 24) ^ *buf) & 255];
+                //buf++;
+        //}
           
-        return crc;
+        //return crc;
 }
 
 // ---------------------------END HASH FUNCTIONS-------------------------------
@@ -227,7 +226,7 @@ hash_search(hash_table_t *ht, const char *key)
                 //format_key[i] = key[i];
         //}
 
-        list_t *list = &ht->table[ht->hash(format_key) % TABLE_SIZE];
+        list_t *list = &ht->table[ht->hash(key) % TABLE_SIZE];
         int size = list->tail;
 
         int i = 1;
@@ -242,7 +241,7 @@ hash_search(hash_table_t *ht, const char *key)
         }
         
         //for ( ; i <= size; i++) {
-                //if (strcmp(format_key, list->elem[i].data) == 0) {
+                //if (strcmp(key, list->elem[i].data) == 0) {
                         //return list->elem[i].data;
                 //}
         //}
