@@ -6,7 +6,7 @@ OBJ := obj/format.o $(addprefix $(OBJDIR)/, $(SRC:.cpp=.o))
 TARGET := hash_table
 
 CXX := g++
-CXXFLAGS := -O1 -DNDEBUG -g -std=c++14 -fmax-errors=100 -Wall -Wextra -mavx -mavx2     \
+CXXFLAGS := -O2 -DNDEBUG -g -std=c++14 -fmax-errors=100 -Wall -Wextra -mavx -mavx2     \
 	    -Weffc++ -Waggressive-loop-optimizations -Wc++0x-compat           \
 	    -Wc++11-compat -Wc++14-compat -Wcast-align -Wcast-qual            \
 	    -Wchar-subscripts -Wconditionally-supported -Wconversion          \

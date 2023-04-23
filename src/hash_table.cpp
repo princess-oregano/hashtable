@@ -138,33 +138,23 @@ static const unsigned int crc32_table[] = {
 unsigned int
 hash_crc32(const char *key)
 {
-asm (
-                ".intel_syntax noprefix\n"
-                "push rdx\n"
-                "mov eax, 0xffffffff\n"
-        ".loop:\n"
-                "mov dl, byte [rdi]\n"
-                "crc32 eax, dl\n"
-                "inc rdi\n"
-                "cmp dl, 0\n"
-                "jne .loop\n"
-        ".ret:\n"
-                "pop rdx\n"
-                "ret\n"
-                ".att_syntax prefix\n"
-);
-        //UNREACHABLE
-        return 0;
+        const uint8_t *buf = (const uint8_t *) key;
+        unsigned int crc = 0xffffffff;
 
-        //const uint8_t *buf = (const uint8_t *) key;
-        //unsigned int crc = 0xffffffff;
-
-        //while (*buf) {
+        while (*buf) {
                 //crc = (crc << 8) ^ crc32_table[((crc >> 24) ^ *buf) & 255];
-                //buf++;
-        //}
+                asm volatile (
+                        ".intel_syntax noprefix\n"
+                        "crc32 %0, %1\n"
+                        ".att_syntax prefix\n"
+                        : "=r" (crc)
+                        : "r" (*buf), "r" (crc)
+                        :
+                );
+                buf++;
+        }
           
-        //return crc;
+        return crc;
 }
 
 // ---------------------------END HASH FUNCTIONS-------------------------------
@@ -215,6 +205,7 @@ hash_search(hash_table_t *ht, const char *key)
 {
         assert(ht);
         assert(key);
+        assert(strlen(key) < 32);
 
         char format_key[32] = {};
         format(format_key, key);
