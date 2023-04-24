@@ -327,7 +327,7 @@ sample.
 
 Ded32 optimization coefficient: 
 
-$$ \eta = {number\_of\_asm\_lines \over optimization\_boost} \cdot 1000 = 1202.0,$$
+$$ \eta = {optimization\ boost \over number\ of\ asm\ lines} \cdot 1000 = 1202.0,$$
 
 or, if counting all lines in asm section
 
