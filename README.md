@@ -5,8 +5,13 @@ A little study on possible hashtable optimizations *(educational task)*.
 ## Table of contents
 * [Introduction](#introduction)
 * [Hash functions](#hash-functions)
-* [Perfomance](#perfomance)
+* [Perfomance examination](#perfomance)
+    * [First prototype](#first-prorotype)
+    * [SIMD optimization](#simd-optimization)
+    * [Assembly function](#assembly-function)
+    * [GCC extended inline assembly](#inline-asm)
 * [Conclusion](#conclusion)
+* [Appendix](#appendix)
 
 ## Introduction
 
@@ -27,11 +32,11 @@ use this hashtable implementation, then you will meet next prerequisites:
 * `perf`
 * CPU with AVX/AVX2 set of instructions
 
-To examine program, we will use next commands:
+To examine program we will use next commands:
 
 For tables and annotations:
 ```
-perf record --call-graph dwarf,4096 -F 97 ./hash_table
+perf record --call-graph dwarf -F 97 ./hash_table
 perf report
 ```
 For stats:
@@ -39,7 +44,8 @@ For stats:
 perf stat -r 10 ./hash_table 
 ```
 
-All versions of program were compiled with `-O2` flag.
+All versions of program were compiled with both `-O2` and `-O1` flag for 
+comparison. 
 
 ## Hash functions
 In real-case hashtables average length of list is one element. To ensure, that 
@@ -109,6 +115,8 @@ as:
 As this study is first and formost an educational task, usage of all methods is
 mandatory, so some of them may seem a little... questionable. 
 
+### First prototype
+
 Our first prototype will be simple search function:
 ```c
 char *
@@ -117,8 +125,7 @@ hash_search(hash_table_t *ht, const char *key)
         list_t *list = &ht->table[ht->hash(key) % TABLE_SIZE];
         int size = list->tail;
 
-        int i = 1;
-        for ( ; i <= size; i++) {
+        for (int i = 1; i <= size; i++) {
                 if (strcmp(key, list->elem[i].data) == 0) {
                         return list->elem[i].data;
                 }
@@ -136,6 +143,20 @@ This version will be the default version of `hash_search()`. Useful information
 for further comparison:
 ![default stats](ref/none-stat-O2.jpg "stats")
 ![default table](ref/none-table.jpg "table")
+
+From this moment we will fill the next table: 
+
+| Optimizations: | None
+|---|---
+| (-O2) Time of execution, s | 13.76 | 13.29 | 12.19 | 10.14
+| (-O1) Time of execution, s | 17.34 | 16.15 | 14.91 | 12.19
+| (-O2) Prev_time / current_time | - | 1.035 | 1.091 | 1.202
+| (-O1) Prev_time / current_time | - | 1.074 | 1.083 | 1.223
+| (-O2) Default_time / current_time | 1 | 1.035 | 1.129 | 1.357
+| (-O1) Default_time / current_time | 1 | 1.074 | 1.163 | 1.422
+| time_O1 / time_O2 | 1.260 
+
+### SIMD optimization
 
 The first and most obvious thought is to use intrinsics, as we work with 
 strings less than 32 bytes each, which is exactly the size of `__m256i`.
@@ -177,8 +198,7 @@ hash_search(hash_table_t *ht, const char *key)
         list_t *list = &ht->table[ht->hash(format_key) % TABLE_SIZE];
         int size = list->tail;
 
-        int i = 1;
-        for ( ; i <= size; i++) {
+        for (int i = 1; i <= size; i++) {
                 // AVX/AVX2 optimization of strcmp().
                 const __m256i key_256i = _mm256_load_si256((const __m256i *) format_key);
                 const __m256i data_256i = _mm256_load_si256((const __m256i *) list->elem[i].data);
@@ -196,13 +216,24 @@ The results are a little dissatisfying: we got accelaration by 3.5%.
 ![intrin stats](ref/format+intrin-stat-O2.jpg "stats")
 ![intrin table](ref/format+intrin-table.jpg "table")
 
+
+| Optimizations: | None | + intrinsics
+|---|---|---
+| (-O2) Time of execution, s | 13.76 | 13.29 | 12.19 | 10.14
+| (-O1) Time of execution, s | 17.34 | 16.15 | 14.91 | 12.19
+| (-O2) Prev_time / current_time | - | 1.035 | 1.091 | 1.202
+| (-O1) Prev_time / current_time | - | 1.074 | 1.083 | 1.223
+| (-O2) Default_time / current_time | 1 | 1.035 | 1.129 | 1.357
+| (-O1) Default_time / current_time | 1 | 1.074 | 1.163 | 1.422
+| time_O1 / time_O2 | 1.260 | 1.215 | 1.223 | 1.202 |
+
 It may seem, that default `strcmp()` function is only a bit slower, than intrinsic-based
 implementation of the same function with fixed string length, which is, obviously, 
 not true. The problem source is the part, where we format key to the size of 32 bytes. 
 To prove that, we will leave that part of code, while using `strcmp()` again:
 ![intrin stats](ref/format+strcmp-stat-O2.jpg "stats")
 
-We can see a drastic time leap **(by 23%)**, which proves the theory.
+We can see a drastic time leap, which proves the theory.
 
 > [NOTE] Why not use perf (annotate function) to prove the concept?
 >
@@ -210,7 +241,9 @@ We can see a drastic time leap **(by 23%)**, which proves the theory.
 `strcmp()`, you could see, that `mov` took almost 65%, while `strcmp()` call only about
 1%. That is the same effect.
 
-So, the next visible bottneck conserns formatting. To solve this program, writing 
+### Assembly function
+
+So, the next visible bottleneck concerns formatting. To solve this program, writing 
 a specific function in assembly language is a good option. 
 
 ```nasm
@@ -240,32 +273,36 @@ Further analisys shows very good results:
 ![intrin stats](ref/asm+intrin-stat-O2.jpg "stats")
 ![intrin table](ref/asm+intrin-table.jpg "table")
 
-That is faster than previous version with intrinsics by 8.2% and 11.4% faster, than 
-default version.
+| Optimizations: | None | + intrinsics | + asm function
+|---|---|---|---
+| (-O2) Time of execution, s | 13.76 | 13.29 | 12.19 | 10.14
+| (-O1) Time of execution, s | 17.34 | 16.15 | 14.91 | 12.19
+| (-O2) Prev_time / current_time | - | 1.035 | 1.091 | 1.202
+| (-O1) Prev_time / current_time | - | 1.074 | 1.083 | 1.223
+| (-O2) Default_time / current_time | 1 | 1.035 | 1.129 | 1.357
+| (-O1) Default_time / current_time | 1 | 1.074 | 1.163 | 1.422
+| time_O1 / time_O2 | 1.260 | 1.215 | 1.223 | 1.202 |
+
+### Inline ASM
 
 At this point, there is little to none possible options for optimizations:
-most of the code is either intrinsics or asm. So we will step aside a little, and 
+most of the `hash_search()` is either intrinsics or asm. So we will step aside a little, and 
 do something about hash functions.
 
 There is a special intrinsic for that purposes (exactly CRC32), but according to task,
 we must use inline asm:
-```nasm
-        push rdx
-        mov eax, 0xffffffff
-.loop:
-        mov dl, byte [rdi]
-        cmp dl, 0
-        je .ret
-        crc32 eax, dl
-        inc rdi
-        jmp .loop
-.ret:
-        pop rdx
-        ret
+```c
+asm volatile (
+        ".intel_syntax noprefix\n"
+        "crc32 %0, %1\n"
+        ".att_syntax prefix\n"
+        : "=r" (crc)
+        : "r" (*buf), "r" (crc)
+        :
+);
 ```
 
-As we can see, it gives us serious boost(by 16.8% relatively to previous version and 26.3% 
-in total):
+As we can see, it gives us serious boost:
 ![full stats](ref/full-stat-O2.jpg "stats")
 
 ## Conclusion
@@ -273,8 +310,25 @@ in total):
 In total, we could optimize `hash_search()` function by 26.3%, which is
 a good result. All collected data is represented in the table below:
 
-| Optimizations: | None | `strcmp()` => intrinsics | *prev* + asm function | *prev* + inline asm(crc32) 
+| Optimizations: | None | + intrinsics | + asm function | + inline asm(crc32) 
 |---|---|---|---|---|
-| Optimization coef (relative) | - | 3.5% | 8.2%  | 16.8%
-| Optimization coef (absolute) | - | 3.5% | 11.4% | 26.3%
+| (-O2) Time of execution, s | 13.76 | 13.29 | 12.19 | 10.14
+| (-O1) Time of execution, s | 17.34 | 16.15 | 14.91 | 12.19
+| (-O2) Prev_time / current_time | - | 1.035 | 1.091 | 1.202
+| (-O1) Prev_time / current_time | - | 1.074 | 1.083 | 1.223
+| (-O2) Default_time / current_time | 1 | 1.035 | 1.129 | 1.357
+| (-O1) Default_time / current_time | 1 | 1.074 | 1.163 | 1.422
+| time_O1 / time_O2 | 1.260 | 1.215 | 1.223 | 1.202 |
 
+Also, it was proved, that CRC32 is better, than other hash functions out of
+sample.
+
+## Appendix
+
+Ded32 optimization coefficient: 
+
+$$ \eta = {number\_of\_asm\_lines \over optimization\_boost} \cdot 1000 = 1202.0,$$
+
+or, if counting all lines in asm section
+
+$$ \eta = 240.4.$$
