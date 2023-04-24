@@ -71,13 +71,13 @@ The distribution (number of elements depending on list index)
 is shown on next graphs (pay attention to scale on individual graphs: they are different, so
 that the shape of chart was more distinctive):
 
-<img align="left" width="450" src="ref/one.png">
-<img align="right" width="450" src="ref/first_ascii.png">
-<img align="left" width="450" src="ref/len.png">
-<img align="right" width="450" src="ref/sum_ascii.png">
-<img align="left" width="450" src="ref/rol.png">
-<img align="right" width="450" src="ref/ror.png">
-<img align="center" width="450" src="ref/crc32.png">
+<img align="left" width="400" src="ref/one.png">
+<img align="right" width="400" src="ref/first_ascii.png">
+<img align="left" width="400" src="ref/len.png">
+<img align="right" width="400" src="ref/sum_ascii.png">
+<img align="left" width="400" src="ref/rol.png">
+<img align="right" width="400" src="ref/ror.png">
+<img align="center" width="400" src="ref/crc32.png">
     
 And compound graphs:
 
