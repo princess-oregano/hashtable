@@ -67,29 +67,17 @@ where i = [0; strlen(key)],
 6. `hash_ror` is similar to `hash_rol`, excepts it uses ROR instruction instead,
 7. `hash_crc32` is typical CRC32 implementation.
 
-The distribution (number of elements depending on the number of list)
-is shown on next graphs (pay attention to scale on individual graphs):
+The distribution (number of elements depending on list index)
+is shown on next graphs (pay attention to scale on individual graphs: they are different, so
+that the shape of chart was more distinctive):
 
-* `hash_one()`:
-![hash_one()](ref/one.png "hash_one()")
-
-* `hash_first_ascii()`:
-![hash_first_ascii()](ref/first_ascii.png "hash_first_ascii()")
-
-* `hash_len()`:
-![hash_len()](ref/len.png "hash_len()")
-
-* `hash_sum_ascii()`:
-![hash_sum_ascii()](ref/sum_ascii.png "hash_sum_ascii()")
-
-* `hash_rol()`:
-![hash_rol()](ref/rol.png "hash_rol()")
-
-* `hash_ror()`:
-![hash_ror()](ref/ror.png "hash_ror()")
-
-* `hash_crc32()`:
-![hash_crc32()](ref/crc32.png "hash_crc32()")
+<img align="left" width="475" src="ref/one.png">
+<img align="right" width="475" src="ref/first_ascii.png">
+<img align="left" width="475" src="ref/len.png">
+<img align="right" width="475" src="ref/sum_ascii.png">
+<img align="left" width="475" src="ref/rol.png">
+<img align="right" width="475" src="ref/ror.png">
+<img align="center" width="475" src="ref/crc32.png">
     
 And compound graphs:
 
@@ -149,12 +137,12 @@ From this moment we will fill the next table:
 | Optimizations: | None
 |---|---
 | (-O2) Time of execution, s | 13.76 | 13.29 | 12.19 | 10.14
-| (-O1) Time of execution, s | 17.34 | 16.15 | 14.91 | 12.19
 | (-O2) Prev_time / current_time | - | 1.035 | 1.091 | 1.202
-| (-O1) Prev_time / current_time | - | 1.074 | 1.083 | 1.223
 | (-O2) Default_time / current_time | 1 | 1.035 | 1.129 | 1.357
+| (-O1) Time of execution, s | 17.34 | 16.15 | 14.91 | 12.19
+| (-O1) Prev_time / current_time | - | 1.074 | 1.083 | 1.223
 | (-O1) Default_time / current_time | 1 | 1.074 | 1.163 | 1.422
-| time_O1 / time_O2 | 1.260 
+| time_O1 / time_O2 | 1.260 | 1.215 | 1.223 | 1.202 |
 
 ### SIMD optimization
 
@@ -220,10 +208,10 @@ The results are a little dissatisfying: we got accelaration by 3.5%.
 | Optimizations: | None | + intrinsics
 |---|---|---
 | (-O2) Time of execution, s | 13.76 | 13.29 | 12.19 | 10.14
-| (-O1) Time of execution, s | 17.34 | 16.15 | 14.91 | 12.19
 | (-O2) Prev_time / current_time | - | 1.035 | 1.091 | 1.202
-| (-O1) Prev_time / current_time | - | 1.074 | 1.083 | 1.223
 | (-O2) Default_time / current_time | 1 | 1.035 | 1.129 | 1.357
+| (-O1) Time of execution, s | 17.34 | 16.15 | 14.91 | 12.19
+| (-O1) Prev_time / current_time | - | 1.074 | 1.083 | 1.223
 | (-O1) Default_time / current_time | 1 | 1.074 | 1.163 | 1.422
 | time_O1 / time_O2 | 1.260 | 1.215 | 1.223 | 1.202 |
 
@@ -269,17 +257,17 @@ format:
         ret
 ```
 
-Further analisys shows very good results:
+Further analysis shows very good results:
 ![intrin stats](ref/asm+intrin-stat-O2.jpg "stats")
 ![intrin table](ref/asm+intrin-table.jpg "table")
 
 | Optimizations: | None | + intrinsics | + asm function
 |---|---|---|---
 | (-O2) Time of execution, s | 13.76 | 13.29 | 12.19 | 10.14
-| (-O1) Time of execution, s | 17.34 | 16.15 | 14.91 | 12.19
 | (-O2) Prev_time / current_time | - | 1.035 | 1.091 | 1.202
-| (-O1) Prev_time / current_time | - | 1.074 | 1.083 | 1.223
 | (-O2) Default_time / current_time | 1 | 1.035 | 1.129 | 1.357
+| (-O1) Time of execution, s | 17.34 | 16.15 | 14.91 | 12.19
+| (-O1) Prev_time / current_time | - | 1.074 | 1.083 | 1.223
 | (-O1) Default_time / current_time | 1 | 1.074 | 1.163 | 1.422
 | time_O1 / time_O2 | 1.260 | 1.215 | 1.223 | 1.202 |
 
@@ -307,16 +295,16 @@ As we can see, it gives us serious boost:
 
 ## Conclusion
 
-In total, we could optimize `hash_search()` function by 26.3%, which is
+In total, we could optimize `hash_search()` function by **1.357** times, which is
 a good result. All collected data is represented in the table below:
 
 | Optimizations: | None | + intrinsics | + asm function | + inline asm(crc32) 
 |---|---|---|---|---|
 | (-O2) Time of execution, s | 13.76 | 13.29 | 12.19 | 10.14
-| (-O1) Time of execution, s | 17.34 | 16.15 | 14.91 | 12.19
 | (-O2) Prev_time / current_time | - | 1.035 | 1.091 | 1.202
-| (-O1) Prev_time / current_time | - | 1.074 | 1.083 | 1.223
 | (-O2) Default_time / current_time | 1 | 1.035 | 1.129 | 1.357
+| (-O1) Time of execution, s | 17.34 | 16.15 | 14.91 | 12.19
+| (-O1) Prev_time / current_time | - | 1.074 | 1.083 | 1.223
 | (-O1) Default_time / current_time | 1 | 1.074 | 1.163 | 1.422
 | time_O1 / time_O2 | 1.260 | 1.215 | 1.223 | 1.202 |
 
@@ -325,7 +313,7 @@ sample.
 
 ## Appendix
 
-Ded32 optimization coefficient: 
+ded32 perfomance coefficient: 
 
 $$ \eta = {optimization\ boost \over number\ of\ asm\ lines} \cdot 1000 = 1202.0,$$
 
